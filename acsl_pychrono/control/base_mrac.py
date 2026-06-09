@@ -39,6 +39,7 @@ class BaseMRAC():
     """
     Reshapes all gain parameters to their correct (row, col) shape and converts them to np.matrix.
     This is intended to be called once after loading or updating gains stored as flat arrays.
+    Used with ANY MRAC instances.
     """
     self.K_hat_x_tran = np.matrix(self.K_hat_x_tran.reshape(6,3))
     self.K_hat_r_tran = np.matrix(self.K_hat_r_tran.reshape(3,3))
@@ -51,10 +52,20 @@ class BaseMRAC():
     """
     Reshapes all gain parameters to their correct (row, col) shape and converts them to np.matrix.
     This is intended to be called once after loading or updating gains stored as flat arrays.
+    Used with ANY TwoLayer MRAC instances.
     """
     self.reshapeAdaptiveGainsToMatricesMRAC()
     self.K_hat_g_tran = np.matrix(self.K_hat_g_tran.reshape(6,3))
     self.K_hat_g_rot = np.matrix(self.K_hat_g_rot.reshape(3,3))
+
+  def reshapeAdaptiveGainsToMatricesReLuMRAC(self, NNwidth):
+    """
+    Reshapes all gain parameters to their correct (row, col) shape and converts them to np.matrix.
+    This is inteded to be called once after loading or updating gains stored as flat arrays.
+    Used with ANY ReLu MRAC instances.
+    """
+    self.reshapeAdaptiveGainsToMatricesMRAC()
+    self.Theta_hat_tran_ReLu = np.matrix(self.Theta_hat_tran_ReLu.reshape(NNwidth, 3))
 
   def computeTrajectoryTrackingErrors(self, odein: OdeInput):
     """

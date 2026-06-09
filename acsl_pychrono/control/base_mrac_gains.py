@@ -152,6 +152,23 @@ class BaseHybridGains(ABC):
   lambda_bar_rot: float
   delta_ebci_rot: float
 
+class BaseReLuGains(ABC):
+  NN_width: int
+  NN_depth: int
+  NN_adaptive_rate: float
+  Gamma_Theta_tran_ReLU: np.ndarray
+
+  NN_seed: int
+
+  sigma_Theta_tran_ReLu: float
+
+  x_e_Theta_tran_ReLu: np.ndarray
+  S_diagonal_Theta_tran_ReLu: np.ndarray
+  alpha_Theta_tran_ReLu: float
+
+  S_Theta_tran_ReLu: np.ndarray
+  epsilon_Theta_tran_ReLu: float
+
 class BaseFunnelGains(ABC):
   Q_M_funnel_tran: np.ndarray
   M_funnel_tran: np.ndarray
@@ -240,6 +257,7 @@ class BaseMRACGains(
   BaseProjectionOperatorGains,
   BaseErrorBoundingControlInputGains,
   BaseHybridGains,
+  BaseReLuGains,
   BaseFunnelGains
 ):
   pass

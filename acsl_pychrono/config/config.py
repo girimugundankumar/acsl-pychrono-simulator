@@ -10,7 +10,7 @@ class MissionConfig:
   # Run the simulator in Wrapper mode (more simulations automatically run sequentially)
   wrapper_flag: bool = False
   # If True, perform real-time rendering of the simulation with Irrlicht
-  visualization_flag: bool = False
+  visualization_flag: bool = True
   # Dynamic camera options:
   # "fixed"
   # "default",
@@ -34,7 +34,8 @@ class MissionConfig:
   # "HybridTwoLayerMRAC",
   # "NonAdaptiveEBCI",
   # "FunnelTwoLayerMRAC",
-  controller_type: str = "MRAC"
+  # "ReLuMRAC"
+  controller_type: str = "ReLuMRAC"
 
   # User-defined trajectory types:
   # "circular_trajectory",
@@ -99,7 +100,7 @@ class VehicleConfig:
   # "Q"
   # "SQ"
   # "X8"
-  uav_name: str = "QUAD"
+  uav_name: str = "X8"
 
 @dataclass
 class EnvironmentConfig:
