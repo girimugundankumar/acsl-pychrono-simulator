@@ -50,20 +50,20 @@ class MissionConfig:
   # "bean_trajectory0p2.json"
   # "rollercoaster_trajectory1p2.json"
   # "stadium.json"
-  trajectory_data_path: str = "bean_trajectory0p2.json"
+  trajectory_data_path: str = "rollercoaster_trajectory1p2.json"
 
   # Time for which, after executing the "trajectory_data_path",
   # the vehicle is hovering before starting the landing phase
   hover_after_trajectory_time_seconds: float = 1.0
 
   # Flag to add or remove the payload from the simulation
-  add_payload_flag: bool = False
+  add_payload_flag: bool = True
   # Payload types: 
   # "two_steel_balls"
   # "ten_steel_balls_in_two_lines"
   # "many_steel_balls_in_random_position"
   # "sling_ball_payload"
-  payload_type: str = "sling_ball_payload"
+  payload_type: str = "two_steel_balls"
 
   # Payload Dropping (only for "two_steel_balls" payload type)
   drop_two_steel_balls: bool = False
