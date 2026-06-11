@@ -6,7 +6,6 @@ import scipy
 from acsl_pychrono.simulation.flight_params import FlightParams
 from acsl_pychrono.control.projection_operator import ProjectionOperator
 from acsl_pychrono.control.base_mrac_gains import BaseMRACGains
-from acsl_pychrono.control.base_mrac_gains import BaseReLuGains
 
 class FunnelTwoLayerReLuMRACGains(BaseMRACGains):
   def __init__(self, flight_params: FlightParams):
@@ -25,7 +24,7 @@ class FunnelTwoLayerReLuMRACGains(BaseMRACGains):
     gains_config_file = flight_params.get_controller_config(gains_config_filename, flight_params.uav.name)
 
     # Number of states to be integrated by RK4
-    self.number_of_states = 135
+    self.number_of_states = 134
 
     # ----------------------------------------------------------------
     #                     Baseline Parameters
@@ -169,6 +168,42 @@ class FunnelTwoLayerReLuMRACGains(BaseMRACGains):
     self.Moment_min = flight_params.get_scalar_from_config(gains_config_file, "Moment_min")
     self.Delta_Moment_min = flight_params.get_scalar_from_config(gains_config_file, "Delta_Moment_min")
     self.nu_funnel_rot = flight_params.get_scalar_from_config(gains_config_file, "nu_funnel_rot")
+
+    # ----------------------------------------------------------------
+    #                   ReLu Neural Network Parameters
+    # ----------------------------------------------------------------
+    self.NN_width = flight_params.get_scalar_from_config(gains_config_file, "NN_width")
+    self.NN_depth = flight_params.get_scalar_from_config(gains_config_file, "NN_depth")
+    self.NN_seed = flight_params.get_scalar_from_config(gains_config_file, "NN_seed")
+    self.NN_adaptive_rate  = flight_params.get_scalar_from_config(gains_config_file, "NN_adaptive_rate")
+
+    # Print debug statements to the terminal
+    print(f"ReLu Neural Network Neurons Per Layer: {self.NN_width}")
+    print(f"ReLu Neural Network Number of Layers: {self.NN_depth}")
+    print(f"Number of ODE45 rows to be integrated before ReLu: {self.number_of_states}")
+    print(f"Number of control inputs present in the outerloop: {self.B_ref_tran.shape[1]}")
+    print(f"Number of ODE45 rows added as a consequence of ReLu: {self.NN_width * self.B_ref_tran.shape[1]}")
+
+    # Add more states to the number of states to be integrated for \hat{\Theta}
+    # Which will be: (width of the neural network) x m
+    self.number_of_states += self.NN_width * self.B_ref_tran.shape[1]
+    
+    # Print debug statements to the terminal
+    print(f"Number of ODE45 rows to be integrated after ReLu: {self.number_of_states}")
+
+    # Create Gamma_Theta_tran_ReLu gain to match the ReLu Phi
+    self.Gamma_Theta_tran_ReLU = self.NN_adaptive_rate * np.identity(self.NN_width)
+
+    # Get the sigma modificiation value
+    self.sigma_Theta_tran_ReLu = flight_params.get_scalar_from_config(gains_config_file, "sigma_Theta_tran_ReLu")
+
+    # Theta_hat_ReLu projection operator
+    self.x_e_Theta_tran_ReLu = np.transpose(np.ones([1, self.NN_width * self.B_ref_tran.shape[1]]) * flight_params.get_scalar_from_config(gains_config_file, "x_e_Theta_tran_transpose_ReLu_scaling_factor"))
+    self.S_diagonal_Theta_tran_ReLu = np.transpose(np.ones([1, self.NN_width * self.B_ref_tran.shape[1]]) * flight_params.get_scalar_from_config(gains_config_file, "S_diagonal_Theta_tran_transpose_ReLu_scaling_factor"))
+    self.alpha_Theta_tran_ReLu = flight_params.get_scalar_from_config(gains_config_file, "alpha_Theta_tran_ReLu")
+
+    self.S_Theta_tran_ReLu = ProjectionOperator.generateEllipsoidMatrixFromDiagonal(self.S_diagonal_Theta_tran_ReLu.flatten())
+    self.epsilon_Theta_tran_ReLu = ProjectionOperator.computeEpsilonFromAlpha(self.alpha_Theta_tran_ReLu)
     
     # ----------------------------------------------------------------
     #                   Safety Mechanism Parameters
@@ -292,6 +327,6 @@ class FunnelTwoLayerReLuMRACGains(BaseMRACGains):
     self.lambda_bar_rot = flight_params.get_scalar_from_config(gains_config_file, "lambda_bar_rot")
     self.delta_ebci_rot = flight_params.get_scalar_from_config(gains_config_file, "delta_ebci_rot")
     
-    print(f"[INFO] Successfully loaded FunnelTwoLayerMRACGains Gains")
+    print(f"[INFO] Successfully loaded FunnelTwoLayerReLuMRACGains Gains")
 
 

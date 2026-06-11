@@ -214,6 +214,29 @@ Delta_Moment_min: !!float 0.01
 nu_funnel_rot: !!float 0.0
 
 # ----------------------------------------------------------------
+#                   ReLu Neural Network Parameters
+# ----------------------------------------------------------------
+# NN_width specifies the number of neurons per layer in each layer
+NN_width: 10
+
+# NN_depth specifies the number of neuron layers for the network
+NN_depth: 10
+
+# Fix the seed for the python rng for the RBF function in ReLu
+NN_seed: 1
+
+# Adaptive rate for the ReLu network - It is a scaling factor
+NN_adaptive_rate: !!float 1.2
+
+# Sigma modification for the ReLu Network adaptive gains 
+sigma_Theta_tran_ReLu: !!float 0.5
+
+# Projection operator for the ReLu Network adaptive gains
+x_e_Theta_tran_transpose_ReLu_scaling_factor: !!float 0.0
+S_diagonal_Theta_tran_transpose_ReLu_scaling_factor: !!float 5.0
+alpha_Theta_tran_ReLu: !!float 0.1
+
+# ----------------------------------------------------------------
 #                   Safety Mechanism Parameters
 # ----------------------------------------------------------------
 

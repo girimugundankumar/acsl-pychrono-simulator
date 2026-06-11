@@ -12,6 +12,8 @@ from acsl_pychrono.control.TwoLayerMRAC.m_two_layer_mrac import M_TwoLayerMRAC
 from acsl_pychrono.control.FunnelMRAC.m_funnel_mrac import M_FunnelMRAC
 from acsl_pychrono.control.NonAdaptiveEBCI.m_nonadaptive_ebci import M_NonAdaptiveEBCI
 from acsl_pychrono.control.projection_operator import ProjectionOperator
+from acsl_pychrono.control.ReLuMRAC.m_relu_mrac import ReLUFeatureMap
+from acsl_pychrono.control.FunnelTwoLayerReLuMRAC.m_funnel_two_layer_relu_mrac import M_FunnelTwoLayerReLuMRAC
 
 class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
   def __init__(self, gains: FunnelTwoLayerMRACGains, ode_input: OdeInput, flight_params: FlightParams, timestep: float):
@@ -29,6 +31,13 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
     # Computing trajectory tracking error derivative numerically
     self.e_tran_prev = np.zeros((6, 1))
     self.e_tran_dot = np.zeros((6, 1))
+
+    # Initate the ReLu neural network for the regressor
+    self.NeuralNetwork = ReLUFeatureMap(self.gains.B_ref_tran.shape[0],   # n
+                                        self.gains.B_ref_tran.shape[1],   # m
+                                        self.gains.NN_width,              # no. of neurons per layer
+                                        self.gains.NN_depth,              # no. of layers for the network
+                                        self.gains.NN_seed)               # the fixed seed to the rng
 
   def computeControlAlgorithm(self, ode_input: OdeInput):
     """
@@ -56,9 +65,10 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
     self.K_hat_g_rot = self.y[124:133] # \hat{K}_g rotational (Two-layer)
     self.eta_funnel_tran = self.y[133] # eta used to compute the translational dynamics funnel diameter
     self.eta_funnel_rot = self.y[134] # eta used to compute the rotational dynamics funnel diameter
+    self.Theta_hat_tran_ReLu = self.y[134:134 + (self.gains.NN_width * self.gains.B_ref_tran.shape[1])] # \hat{\Theta} (translational - Neural Network) 
 
     # Reshapes all adaptive gains to their correct (row, col) shape as matrices
-    self.reshapeAdaptiveGainsToMatricesTwoLayerMRAC()
+    self.reshapeAdaptiveGainsToMatricesTwoLayerReLuMRAC(self.gains.NN_width)
     self.e_tran_norm = LA.norm(self.e_tran)
     self.e_tran_dot = (self.e_tran - self.e_tran_prev) / self.timestep
     self.e_tran_prev = self.e_tran.copy()
@@ -74,11 +84,16 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
 
     self.Phi_adaptive_tran_augmented = self.computeRegressorVectorOuterLoop()
 
-    self.mu_adaptive_mrac_tran = M_TwoLayerMRAC.computeControlLaw(
+    # Compute \Phi for the neural network
+    self.Phi_neural_network = self.NeuralNetwork.Phi(np.hstack([self.odein.translational_position_in_I.T, self.odein.translational_velocity_in_I.T]))
+    self.Phi_neural_network = np.matrix(self.Phi_neural_network.reshape(self.gains.NN_width, 1))
+
+    self.mu_adaptive_mrac_tran = M_FunnelTwoLayerReLuMRAC.computeControlLawTwoLayerReLu(
       self.K_hat_x_tran, self.x_tran,
       self.K_hat_r_tran, self.r_tran,
       self.Theta_hat_tran, self.Phi_adaptive_tran_augmented,
-      self.K_hat_g_tran, self.e_tran
+      self.K_hat_g_tran, self.e_tran,
+      self.Theta_hat_tran_ReLu, self.Phi_neural_network
     )
 
     self.mu_adaptive_ebci_tran = M_NonAdaptiveEBCI.computeErrorBoundingControlInput(
@@ -284,6 +299,7 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
     self.dy[124:133] = self.K_hat_g_rot_dot.reshape(9,1)
     self.dy[133] = self.eta_dot_funnel_tran
     self.dy[134] = self.eta_dot_funnel_rot
+    self.dy[134:134 + (self.gains.NN_width * self.gains.B_ref_tran.shape[1])] = self.Theta_hat_tran_ReLu_dot.reshape((self.gains.NN_width * self.gains.B_ref_tran.shape[1]), 1)
 
     return np.array(self.dy)
   
@@ -328,17 +344,19 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
     (self.K_hat_x_tran_dot,
      self.K_hat_r_tran_dot,
      self.Theta_hat_tran_dot,
-     self.K_hat_g_tran_dot
-    ) = M_TwoLayerMRAC.computeAllRobustAdaptiveLaws(
+     self.K_hat_g_tran_dot,
+     self.Theta_hat_tran_ReLu_dot
+    ) = M_FunnelTwoLayerReLuMRAC.computeAllRobustAdaptiveLawsTwoLayerReLu(
       self.gains.Gamma_x_tran, self.x_tran,
       self.gains.Gamma_r_tran, self.r_tran,
       self.gains.Gamma_Theta_tran, self.Phi_adaptive_tran_augmented,
       self.gains.Gamma_g_tran, self.e_tran,
+      self.gains.Gamma_Theta_tran_ReLU, self.Phi_neural_network,
       eTranspose_P_B_funnel_tran,
       self.dead_zone_value_tran,
-      self.gains.sigma_x_tran, self.gains.sigma_r_tran, self.gains.sigma_Theta_tran, self.gains.sigma_g_tran,
+      self.gains.sigma_x_tran, self.gains.sigma_r_tran, self.gains.sigma_Theta_tran, self.gains.sigma_g_tran, self.gains.sigma_Theta_tran_ReLu,
       eTranspose_P_B_funnel_norm_tran,
-      self.K_hat_x_tran, self.K_hat_r_tran, self.Theta_hat_tran, self.K_hat_g_tran,
+      self.K_hat_x_tran, self.K_hat_r_tran, self.Theta_hat_tran, self.K_hat_g_tran, self.Theta_hat_tran_ReLu,
       self.gains.use_dead_zone_modification, self.gains.use_e_modification
     )
 
@@ -382,6 +400,16 @@ class FunnelTwoLayerReLuMRAC(BaseMRAC, Control):
         self.gains.x_e_g_tran,
         self.gains.S_g_tran,
         self.gains.epsilon_g_tran
+      )
+
+      (self.Theta_hat_tran_ReLu_dot,
+       self.proj_op_activated_Theta_hat_tran_ReLu
+      ) = ProjectionOperator.Ellipsoid.projectionMatrix(
+        self.Theta_hat_tran_ReLu,
+        self.Theta_hat_tran_ReLu_dot,
+        self.gains.x_e_Theta_tran_ReLu,
+        self.gains.S_Theta_tran_ReLu,
+        self.gains.epsilon_Theta_tran_ReLu
       )
 
   def updateAdaptiveLawsInnerLoop(self):

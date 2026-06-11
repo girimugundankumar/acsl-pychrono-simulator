@@ -67,6 +67,15 @@ class BaseMRAC():
     self.reshapeAdaptiveGainsToMatricesMRAC()
     self.Theta_hat_tran_ReLu = np.matrix(self.Theta_hat_tran_ReLu.reshape(NNwidth, 3))
 
+  def reshapeAdaptiveGainsToMatricesTwoLayerReLuMRAC(self, NN_width):
+     """
+    Reshapes all gain parameters to their correct (row, col) shape and converts them to np.matrix.
+    This is inteded to be called once after loading or updating gains stored as flat arrays.
+    Used with ANY Two Layer ReLu MRAC instances.
+    """
+     self.reshapeAdaptiveGainsToMatricesTwoLayerMRAC()
+     self.Theta_hat_tran_ReLu = np.matrix(self.Theta_hat_tran_ReLu.reshape(NN_width, 3))
+
   def computeTrajectoryTrackingErrors(self, odein: OdeInput):
     """
     Computes translational and rotational tracking errors and extracts the reference position.
