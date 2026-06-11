@@ -131,3 +131,4 @@ controller:
     NonAdaptiveEBCI: "NonAdaptiveEBCI.yaml"
     FunnelTwoLayerMRAC: "FunnelTwoLayerMRAC.yaml"
     ReLuMRAC: "ReLuMRAC.yaml"
+    FunnelTwoLayerReLuMRAC: "FunnelTwoLayerReLuMRAC.yaml"

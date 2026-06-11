@@ -35,7 +35,8 @@ class MissionConfig:
   # "NonAdaptiveEBCI",
   # "FunnelTwoLayerMRAC",
   # "ReLuMRAC"
-  controller_type: str = "ReLuMRAC"
+  # "FunnelTwoLayerReLuMRAC"
+  controller_type: str = "FunnelTwoLayerReLuMRAC"
 
   # User-defined trajectory types:
   # "circular_trajectory",
@@ -57,7 +58,7 @@ class MissionConfig:
   hover_after_trajectory_time_seconds: float = 1.0
 
   # Flag to add or remove the payload from the simulation
-  add_payload_flag: bool = True
+  add_payload_flag: bool = False
   # Payload types: 
   # "two_steel_balls"
   # "ten_steel_balls_in_two_lines"
