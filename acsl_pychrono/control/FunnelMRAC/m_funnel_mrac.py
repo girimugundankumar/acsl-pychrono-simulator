@@ -256,7 +256,8 @@ class M_FunnelMRAC:
     """
     xi_temp = M_FunnelMRAC.computeXiFunnel(control_input, control_input_max, control_input_min, Delta_control_input_min)
 
-    eT_Q_e = float(e.T @ Q @ e)
+    # eT_Q_e = float(e.T @ Q @ e)
+    eT_Q_e = float(np.asarray(e.T @ Q @ e).item())
     threshold = 2.0 * Ve_function * (eta_funnel ** 2) * xi_temp + nu_funnel
 
     condition_active = ((eT_Q_e >= threshold) and (H_function > 0.0))

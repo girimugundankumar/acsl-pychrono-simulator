@@ -103,7 +103,9 @@ class FunnelTwoLayerReLuMRACLogger:
       DATA_vector[226] = controller.sigma_nom_funnel_tran
       DATA_vector[227] = controller.sigma_ideal_funnel_tran
     else:
-      DATA_vector[225:228] = np.nan
+      DATA_vector[225] = np.nan
+      DATA_vector[226] = np.nan
+      DATA_vector[227] = np.nan
 
     DATA_vector[228] = controller.H_function_funnel_tran
     DATA_vector[229] = controller.Ve_funnel_tran

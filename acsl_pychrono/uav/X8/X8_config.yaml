@@ -132,3 +132,4 @@ controller:
     FunnelTwoLayerMRAC: "FunnelTwoLayerMRAC.yaml"
     ReLuMRAC: "ReLuMRAC.yaml"
     FunnelTwoLayerReLuMRAC: "FunnelTwoLayerReLuMRAC.yaml"
+    FunnelReLuMRAC: "FunnelReLuMRAC.yaml"

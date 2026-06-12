@@ -36,6 +36,7 @@ class MissionConfig:
   # "FunnelTwoLayerMRAC",
   # "ReLuMRAC"
   # "FunnelTwoLayerReLuMRAC"
+  # "FunnelReLuMRAC"
   controller_type: str = "FunnelTwoLayerReLuMRAC"
 
   # User-defined trajectory types:

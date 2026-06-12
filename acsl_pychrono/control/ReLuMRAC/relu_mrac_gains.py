@@ -19,7 +19,7 @@ class ReLuMRACGains(BaseMRACGains):
     gains_config_file = flight_params.get_controller_config(gains_config_filename, flight_params.uav.name)
     
     # Number of states to be integrated by RK4
-    self.number_of_states = 106
+    self.number_of_states = 107
 
     # ----------------------------------------------------------------
     #                     Baseline Parameters
