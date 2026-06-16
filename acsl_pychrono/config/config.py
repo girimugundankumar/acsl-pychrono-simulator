@@ -56,7 +56,7 @@ class MissionConfig:
 
   # Time for which, after executing the "trajectory_data_path",
   # the vehicle is hovering before starting the landing phase
-  hover_after_trajectory_time_seconds: float = 1.0
+  hover_after_trajectory_time_seconds: float = 5.0
 
   # Flag to add or remove the payload from the simulation
   add_payload_flag: bool = True

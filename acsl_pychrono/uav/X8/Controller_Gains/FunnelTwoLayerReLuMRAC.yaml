@@ -191,8 +191,8 @@ u_min: !!float 2.4
 Delta_u_min: !!float 1.0
 nu_funnel_tran: !!float 0.0
 
-use_funnel_romoco_old_tran: True
-use_eigenvalue_lambda_sat_funnel_tran: False
+use_funnel_romoco_old_tran: False
+use_eigenvalue_lambda_sat_funnel_tran: True
 
 # **Rotational** Funnel parameters 
 Q_M_funnel_rot:
